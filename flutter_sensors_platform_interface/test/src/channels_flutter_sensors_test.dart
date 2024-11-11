@@ -1,20 +1,20 @@
 import 'package:flutter/services.dart';
-import 'package:flutter_sensors_platform_interface/src/method_channel_flutter_sensors.dart';
+import 'package:flutter_sensors_platform_interface/src/channels_flutter_sensors.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   const kPlatformName = 'platformName';
 
-  group('$MethodChannelFlutterSensors', () {
-    late MethodChannelFlutterSensors methodChannelFlutterSensors;
+  group('$ChannelsFlutterSensors', () {
+    late ChannelsFlutterSensors channelsFlutterSensors;
     final log = <MethodCall>[];
 
     setUp(() async {
-      methodChannelFlutterSensors = MethodChannelFlutterSensors();
+      channelsFlutterSensors = ChannelsFlutterSensors();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-        methodChannelFlutterSensors.methodChannel,
+        channelsFlutterSensors.methodChannel,
         (methodCall) async {
           log.add(methodCall);
           switch (methodCall.method) {
@@ -30,7 +30,7 @@ void main() {
     tearDown(log.clear);
 
     test('getPlatformName', () async {
-      final platformName = await methodChannelFlutterSensors.getPlatformName();
+      final platformName = await channelsFlutterSensors.getPlatformName();
       expect(
         log,
         <Matcher>[isMethodCall('getPlatformName', arguments: null)],
