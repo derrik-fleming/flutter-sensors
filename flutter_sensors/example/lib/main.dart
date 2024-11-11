@@ -8,55 +8,77 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: HomePage());
+    return const MaterialApp(home: SensorDataDisplay());
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class GyroSensorDataWidget extends StatelessWidget {
+  const GyroSensorDataWidget({
+    required GyroSensorData data,
+    super.key,
+  }) : _data = data;
+
+  final GyroSensorData _data;
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Sensor: Gyro Data',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        Text(
+          'X: ${_data.x.toStringAsFixed(8)}',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        Text(
+          'Y: ${_data.y.toStringAsFixed(8)}',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        Text(
+          'Z: ${_data.z.toStringAsFixed(8)}',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ],
+    );
+  }
 }
 
-class _HomePageState extends State<HomePage> {
-  String? _platformName;
+class SensorDataDisplay extends StatelessWidget {
+  const SensorDataDisplay({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('FlutterSensors Example')),
+      appBar: AppBar(title: const Text('FlutterSensorsPlugin Example')),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_platformName == null)
-              const SizedBox.shrink()
-            else
-              Text(
-                'Platform Name: $_platformName',
+        child: StreamBuilder<SensorData>(
+          stream: sensorData,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            }
+
+            if (snapshot.hasError) {
+              return Text(
+                'Error: ${snapshot.error}',
                 style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                if (!context.mounted) return;
-                try {
-                  final result = await getPlatformName();
-                  setState(() => _platformName = result);
-                } catch (error) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      content: Text('$error'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Get Platform Name'),
-            ),
-          ],
+              );
+            }
+
+            if (!snapshot.hasData) {
+              return const Text('No sensor data available');
+            }
+
+            final data = snapshot.data!;
+
+            return switch (data) {
+              final GyroSensorData d => GyroSensorDataWidget(data: d),
+              _ => const Text('Unknown data type'),
+            };
+          },
         ),
       ),
     );
